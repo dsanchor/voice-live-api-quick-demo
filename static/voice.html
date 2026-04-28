@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Agent — Session</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="voice-page">
+    <!-- Top bar -->
+    <header class="top-bar">
+      <div class="status" aria-live="polite">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Disconnected</span>
+      </div>
+      <a href="index.html" class="btn btn-secondary" aria-label="Back to settings">⚙ Settings</a>
+    </header>
+
+    <!-- Main area -->
+    <main class="voice-main" role="main">
+      <!-- Mic area -->
+      <div class="mic-area">
+        <button class="mic-button" id="micButton" disabled
+                aria-label="Microphone — waiting for connection">
+          <!-- Mic SVG icon -->
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="1" width="6" height="12" rx="3"/>
+            <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+            <line x1="12" y1="19" x2="12" y2="23"/>
+            <line x1="8" y1="23" x2="16" y2="23"/>
+          </svg>
+        </button>
+        <span class="mic-state-label" id="micLabel">Waiting…</span>
+      </div>
+
+      <!-- Transcript area -->
+      <div class="transcript-area" id="transcript" aria-live="polite" aria-label="Conversation transcript">
+        <!-- Thinking indicator -->
+        <div class="thinking-indicator" id="thinkingIndicator">
+          <div class="bubble">
+            <span class="thinking-dot"></span>
+            <span class="thinking-dot"></span>
+            <span class="thinking-dot"></span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom bar -->
+    <footer class="bottom-bar">
+      <span class="session-info" id="sessionInfo"></span>
+      <button class="btn btn-danger" id="endSessionBtn">End Session</button>
+    </footer>
+  </div>
+
+  <script src="js/audio.js"></script>
+  <script src="js/voice.js"></script>
+</body>
+</html>
