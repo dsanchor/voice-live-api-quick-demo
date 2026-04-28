@@ -12,8 +12,6 @@ CONTAINER_APP_NAME=""
 CONTAINER_APP_ENV_NAME=""
 IMAGE=""
 FOUNDRY_RESOURCE_ID=""
-GHCR_USERNAME=""
-GHCR_TOKEN=""
 
 # ---------------------------------------------------------------------------
 # Usage
@@ -29,8 +27,6 @@ Required:
   --name                  Container App name
   --image                 Container image (e.g. ghcr.io/owner/repo:latest)
   --foundry-resource-id   Azure AI Foundry resource ID for role assignment
-  --ghcr-username         GitHub username for pulling image from GHCR
-  --ghcr-token            GitHub PAT with read:packages scope
 
 Optional:
   --location              Azure region (default: eastus2)
@@ -51,8 +47,6 @@ while [[ $# -gt 0 ]]; do
     --env-name)         CONTAINER_APP_ENV_NAME="$2"; shift 2 ;;
     --image)            IMAGE="$2";                 shift 2 ;;
     --foundry-resource-id) FOUNDRY_RESOURCE_ID="$2"; shift 2 ;;
-    --ghcr-username)    GHCR_USERNAME="$2";         shift 2 ;;
-    --ghcr-token)       GHCR_TOKEN="$2";            shift 2 ;;
     -h|--help)          usage ;;
     *)                  echo "Unknown option: $1"; usage ;;
   esac
@@ -69,8 +63,6 @@ missing=()
 [[ -z "$CONTAINER_APP_NAME" ]]  && missing+=("--name")
 [[ -z "$IMAGE" ]]               && missing+=("--image")
 [[ -z "$FOUNDRY_RESOURCE_ID" ]] && missing+=("--foundry-resource-id")
-[[ -z "$GHCR_USERNAME" ]]       && missing+=("--ghcr-username")
-[[ -z "$GHCR_TOKEN" ]]          && missing+=("--ghcr-token")
 
 if [[ ${#missing[@]} -gt 0 ]]; then
   echo "Error: missing required parameters: ${missing[*]}"
@@ -119,9 +111,6 @@ az containerapp create \
   --cpu 0.5 \
   --memory 1Gi \
   --system-assigned \
-  --registry-server ghcr.io \
-  --registry-username "$GHCR_USERNAME" \
-  --registry-password "$GHCR_TOKEN" \
   --output none
 
 # ---------------------------------------------------------------------------

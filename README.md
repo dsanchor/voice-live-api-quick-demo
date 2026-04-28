@@ -60,9 +60,7 @@ chmod +x infra/deploy.sh
   --resource-group  my-rg \
   --name            voice-agent \
   --image           ghcr.io/<owner>/<repo>:latest \
-  --foundry-resource-id "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<name>" \
-  --ghcr-username   <github-username> \
-  --ghcr-token      <PAT-with-read:packages>
+  --foundry-resource-id "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<name>"
 ```
 
 Optional flags: `--location` (default `eastus2`), `--env-name`.
