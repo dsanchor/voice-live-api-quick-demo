@@ -326,16 +326,13 @@ textarea {
   border-bottom: 1px solid var(--border);
 }
 
-.config-toolbar {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
+/* (toolbar removed — load button moved to .actions) */
 
 .config-page .actions {
   margin-top: 1.5rem;
   display: flex;
   justify-content: flex-end;
+  gap: 0.75rem;
 }
 
 /* ---- Voice Page ---- */

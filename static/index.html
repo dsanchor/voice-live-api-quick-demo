@@ -13,13 +13,6 @@
     <h1>Voice Agent</h1>
     <p class="subtitle">Configure your Voice Live connection parameters.</p>
 
-    <div class="config-toolbar">
-      <input type="file" id="loadSettingsFile" accept=".json" class="sr-only">
-      <button type="button" class="btn btn-secondary" id="loadSettingsBtn">
-        📂 Load Settings
-      </button>
-    </div>
-
     <form id="configForm" novalidate>
       <!-- Mandatory Parameters -->
       <section>
@@ -117,6 +110,10 @@
       </section>
 
       <div class="actions">
+        <input type="file" id="loadSettingsFile" accept=".json" style="display:none">
+        <button type="button" class="btn btn-secondary btn-lg" id="loadSettingsBtn">
+          📂 Load Settings
+        </button>
         <button type="submit" class="btn btn-primary btn-lg">
           Start Voice Session →
         </button>
