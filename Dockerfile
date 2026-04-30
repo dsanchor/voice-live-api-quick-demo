@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Install dependencies first for better layer caching
 COPY app/requirements.txt ./requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --pre -r requirements.txt
 
 # Copy application code and static assets
 COPY app/ ./app/

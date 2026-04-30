@@ -1,6 +1,6 @@
 fastapi
 uvicorn[standard]
 websockets
-azure-ai-voicelive[aiohttp]
+azure-ai-voicelive[aiohttp]>=1.2.0b5
 azure-identity
 python-dotenv
