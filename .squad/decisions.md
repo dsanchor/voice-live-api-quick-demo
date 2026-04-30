@@ -64,6 +64,66 @@
 - **Backend**: App must bind to `0.0.0.0:8000` (already does via uvicorn). Managed identity is available via Azure SDK's `DefaultAzureCredential`.
 - **Integration**: Voice Live API calls will authenticate via managed identity in production.
 
+### Decision: Use absolute package imports in app/
+**Date:** 2026-04-30T14:39:49.781+02:00  
+**Author:** Dallas (Backend Dev)  
+**Status:** Implemented
+
+**Context:** `app/main.py` used bare imports (`from voice_session import ...`) which fail when uvicorn is invoked from the project root as `uvicorn app.main:app`. Python only resolves bare imports relative to CWD or sys.path, not relative to the importing file.
+
+**Decision:** All imports between modules inside `app/` must use absolute package paths (e.g., `from app.voice_session import ...`). Added `app/__init__.py` to make `app` a proper package.
+
+**Impact:** Any new modules added to `app/` must be imported with the `app.` prefix. The `__main__` block and CLI invocation must both reference `app.main:app`.
+
+---
+
+### Decision: Load Settings from JSON File
+**Date:** 2026-04-30T15:08:53.243+02:00  
+**Author:** Lambert (Frontend Dev)  
+**Status:** Implemented
+
+**Context:** Users need a quick way to pre-populate the config form from a saved JSON file rather than typing all fields manually every time, especially when switching between environments or sharing configs.
+
+**Decision:**
+- Added a "Load Settings" button (`.btn-secondary` style) above the config form that triggers a hidden `<input type="file" accept=".json">`.
+- The file is read client-side via `FileReader`, parsed as JSON, validated for mandatory fields, and used to populate the form using the existing `FIELDS` map.
+- Created `config-samples/` directory at project root with two sample JSON files (`mandatory-only.json`, `all-fields.json`) for easy onboarding.
+
+**Rationale:**
+- Pure client-side approach — no backend changes needed.
+- Reuses existing FIELDS map and form population pattern from `loadConfig()`.
+- Sample files serve as documentation of valid config shapes.
+
+**Impact:**
+- **Backend:** None — no new endpoints.
+- **DevOps:** The `config-samples/` folder ships with the repo but doesn't need to be in the container image (it's a developer convenience).
+- **Frontend:** New toolbar area above form; `.config-toolbar` CSS class added.
+
+---
+
+### Decision: Remove GHCR Authentication for Public Repository
+**Date:** 2026-04-28T00:00:00.000+02:00  
+**Author:** Parker (DevOps)  
+**Status:** Implemented
+
+**Context:** The GitHub repository is PUBLIC. Container images pushed to ghcr.io from a public repository are publicly pullable without authentication. Azure Container Apps can pull public images directly without registry credentials.
+
+**Decision:** Removed all GHCR authentication requirements from the deployment workflow:
+- **`infra/deploy.sh`**: Removed `GHCR_USERNAME`, `GHCR_TOKEN` variables and `--ghcr-username`, `--ghcr-token` parameters. Removed registry credentials from `az containerapp create`.
+- **`README.md`**: Updated deployment example and removed references to GitHub PATs and `read:packages` scope.
+
+**Rationale:** Public images on GHCR are accessible without credentials. Azure Container Apps can pull them directly using the image URI.
+
+**Impact:**
+- Deployment simplification — no need to create or manage GitHub PATs with restricted scopes
+- Security improvement — fewer secrets to manage in CI/CD pipelines
+- Reduced friction — faster onboarding for deployment without credential setup
+- No functional change — public images remain publicly accessible
+
+**Backward Compatibility:** Existing deployments will continue to work. If users pass the old parameters to the updated script, it will reject them with "Unknown option."
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus
