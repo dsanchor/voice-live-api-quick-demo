@@ -168,10 +168,6 @@
 
       case 'status':
         setMicState(msg.message || 'idle');
-        // Barge-in: flush agent audio when user starts speaking
-        if (msg.message === 'listening' && audioPlayer) {
-          audioPlayer.flush();
-        }
         break;
 
       case 'response_created':

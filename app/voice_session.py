@@ -255,7 +255,6 @@ class VoiceSession:
                 self._active_response = False
                 self._response_api_done = True
                 await self.send_to_browser({"type": "response_done"})
-                await self.send_to_browser({"type": "status", "message": "listening"})
 
             elif event_type == ServerEventType.RESPONSE_AUDIO_DONE:
                 await self.send_to_browser({"type": "audio_done"})
