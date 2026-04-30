@@ -21,27 +21,11 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Voice Live Agent", version="1.0.0")
 
-# Track active sessions for REST queries
-_active_sessions: dict[str, VoiceSession] = {}
-
 
 @app.get("/health")
 async def health():
     """Health check endpoint for Container Apps probes."""
     return {"status": "healthy"}
-
-
-@app.get("/session/{session_id}")
-async def get_session_info(session_id: str):
-    """Return session info including conversation_id."""
-    session = _active_sessions.get(session_id)
-    if not session:
-        from fastapi.responses import JSONResponse
-        return JSONResponse(status_code=404, content={"error": "session not found"})
-    return {
-        "session_id": session.session_id,
-        "conversation_id": session.conversation_id,
-    }
 
 
 @app.websocket("/ws/voice")
@@ -87,7 +71,6 @@ async def websocket_voice(websocket: WebSocket):
 
         config = VoiceSessionConfig.from_dict(msg)
         session = VoiceSession(config, send_to_browser)
-        _active_sessions[session.session_id] = session
 
         await send_to_browser({"type": "status", "message": "connecting"})
         await session.start()
@@ -120,7 +103,6 @@ async def websocket_voice(websocket: WebSocket):
         await send_to_browser({"type": "error", "message": f"Server error: {e}"})
     finally:
         if session:
-            _active_sessions.pop(session.session_id, None)
             await session.stop()
         try:
             await websocket.close()
