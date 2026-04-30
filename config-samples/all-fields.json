@@ -11,5 +11,7 @@
   "interimResponseInstructions": "Create friendly interim responses indicating wait time due to ongoing processing, if any.",
   "latencyThreshold": 100,
   "enableProactiveGreeting": true,
-  "proactiveGreetingText": "Say something to welcome the user in English."
+  "proactiveGreetingText": "Say something to welcome the user in English.",
+  "noiseReductionEnabled": false,
+  "echoCancellationEnabled": false
 }

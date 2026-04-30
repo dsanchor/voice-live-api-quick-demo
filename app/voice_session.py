@@ -9,6 +9,9 @@ from typing import Optional
 
 from azure.ai.voicelive.aio import connect
 from azure.ai.voicelive.models import (
+    AudioEchoCancellation,
+    AudioNoiseReduction,
+    AzureSemanticVadMultilingual,
     AzureStandardVoice,
     InputAudioFormat,
     InputTextContentPart,
@@ -42,6 +45,8 @@ class VoiceSessionConfig:
     latency_threshold_ms: int = 100
     proactive_greeting: Optional[str] = None
     greeting_enabled: bool = True
+    noise_reduction_enabled: bool = False
+    echo_cancellation_enabled: bool = False
 
     @classmethod
     def from_dict(cls, data: dict) -> "VoiceSessionConfig":
@@ -64,6 +69,8 @@ class VoiceSessionConfig:
             latency_threshold_ms=data.get("latency_threshold_ms", 100),
             proactive_greeting=data.get("proactive_greeting"),
             greeting_enabled=data.get("greeting_enabled", True),
+            noise_reduction_enabled=data.get("noise_reduction_enabled", False),
+            echo_cancellation_enabled=data.get("echo_cancellation_enabled", False),
         )
 
 
@@ -76,8 +83,11 @@ class VoiceSession:
         self.session_id = str(uuid.uuid4())
         self._connection = None
         self._credential = None
+        self._connection_context = None
         self._receive_task: Optional[asyncio.Task] = None
         self._stopped = False
+        self._active_response = False
+        self._response_api_done = False
 
     async def start(self):
         """Connect to Voice Live API and start receiving events."""
@@ -104,12 +114,13 @@ class VoiceSession:
             self.config.project_name,
         )
 
-        self._connection = await connect(
+        self._connection_context = connect(
             endpoint=self.config.voicelive_endpoint,
             credential=self._credential,
             api_version="2026-01-01-preview",
             agent_config=agent_config,
-        ).__aenter__()
+        )
+        self._connection = await self._connection_context.__aenter__()
 
         # Configure session
         session_kwargs = {
@@ -127,6 +138,16 @@ class VoiceSession:
 
         if self.config.voice_name:
             session_kwargs["voice"] = AzureStandardVoice(name=self.config.voice_name)
+
+        session_kwargs["turn_detection"] = AzureSemanticVadMultilingual()
+
+        if self.config.noise_reduction_enabled:
+            session_kwargs["input_audio_noise_reduction"] = AudioNoiseReduction(
+                type="azure_deep_noise_suppression"
+            )
+
+        if self.config.echo_cancellation_enabled:
+            session_kwargs["input_audio_echo_cancellation"] = AudioEchoCancellation()
 
         session_config = RequestSession(**session_kwargs)
         await self._connection.session.update(session=session_config)
@@ -203,20 +224,45 @@ class VoiceSession:
                     await self.send_to_browser({"type": "agent_transcript", "text": transcript})
 
             elif event_type == ServerEventType.RESPONSE_CREATED:
+                self._active_response = True
+                self._response_api_done = False
                 await self.send_to_browser({"type": "response_created"})
                 await self.send_to_browser({"type": "status", "message": "processing"})
 
             elif event_type == ServerEventType.RESPONSE_DONE:
+                self._active_response = False
+                self._response_api_done = True
                 await self.send_to_browser({"type": "response_done"})
                 await self.send_to_browser({"type": "status", "message": "listening"})
 
+            elif event_type == ServerEventType.RESPONSE_AUDIO_DONE:
+                await self.send_to_browser({"type": "audio_done"})
+
+            elif event_type == ServerEventType.RESPONSE_TEXT_DONE:
+                transcript = getattr(event, "text", "") or ""
+                if transcript:
+                    await self.send_to_browser({"type": "agent_text", "text": transcript})
+
+            elif event_type == ServerEventType.CONVERSATION_ITEM_CREATED:
+                item = getattr(event, "item", None)
+                item_id = getattr(item, "id", None) if item else None
+                logger.debug("Conversation item created: %s", item_id)
+                await self.send_to_browser({
+                    "type": "conversation_item_created",
+                    "item_id": item_id,
+                })
+
             elif event_type == ServerEventType.INPUT_AUDIO_BUFFER_SPEECH_STARTED:
                 await self.send_to_browser({"type": "status", "message": "listening"})
-                # Barge-in: cancel current response
-                try:
-                    await self._connection.response.cancel()
-                except Exception:
-                    pass
+                # Barge-in: cancel current response only if one is active
+                if self._active_response and not self._response_api_done:
+                    try:
+                        await self._connection.response.cancel()
+                    except Exception as e:
+                        if "no active response" in str(e).lower():
+                            logger.debug("Cancel ignored - response already completed")
+                        else:
+                            logger.warning("Cancel failed: %s", e)
 
             elif event_type == ServerEventType.INPUT_AUDIO_BUFFER_SPEECH_STOPPED:
                 await self.send_to_browser({"type": "status", "message": "processing"})
@@ -246,11 +292,12 @@ class VoiceSession:
             except asyncio.CancelledError:
                 pass
 
-        if self._connection:
+        if self._connection_context:
             try:
-                await self._connection.__aexit__(None, None, None)
+                await self._connection_context.__aexit__(None, None, None)
             except Exception as e:
                 logger.warning("Error closing Voice Live connection: %s", e)
+            self._connection_context = None
             self._connection = None
 
         if self._credential:
