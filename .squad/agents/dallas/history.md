@@ -37,3 +37,16 @@
 - **Audio features:** Added `noise_reduction_enabled` and `echo_cancellation_enabled` config fields with `AudioNoiseReduction`, `AudioEchoCancellation`, `AzureSemanticVadMultilingual` from SDK
 - **New server→client message types:** `audio_done`, `agent_text`, `conversation_item_created` — Lambert should handle these in the frontend
 - **Config sample:** Updated `config-samples/all-fields.json` with new fields
+
+### 2026-04-30T23:13:59.190+02:00 — Barge-in (interruption) fix
+- **Root cause:** `AudioPlayer.flush()` only stopped `this._currentSource` (the last created node), but `_scheduleNext()` pre-schedules multiple `AudioBufferSourceNode`s into the future via `source.start(startTime)`. Previously scheduled nodes kept playing because we lost references to them.
+- **Fix in `static/js/audio.js`:** Replaced `_currentSource` (single ref) with `_activeSources` (a `Set`). Every scheduled source is added to the set; `onended` removes it. `flush()` iterates the set and stops ALL sources, then clears it.
+- **Fix in `app/voice_session.py`:** Added `input_audio_buffer.clear()` after `response.cancel()` in the `INPUT_AUDIO_BUFFER_SPEECH_STARTED` handler to discard residual audio from the canceled response.
+- **Fix in `static/js/voice.js`:** Added handlers for `audio_done` (resets mic state to idle) and `agent_text` (displays transcript) messages.
+
+### 2026-04-30T23:20:49.627+02:00 — conversation_id capture & exposure
+- **Capture:** `VoiceSession` now has `self.conversation_id` field; extracted from `event.response.conversation_id` on the first `RESPONSE_CREATED` event
+- **WebSocket push:** Once captured, sends `{"type": "conversation_id", "id": "<cid>"}` to browser
+- **REST endpoint:** `GET /session/{session_id}` returns `{ session_id, conversation_id }` for out-of-band lookup
+- **Resume support:** `conversation_id` was already accepted in the config message and passed to the SDK `agent_config`; no change needed there
+- **Session tracking:** `_active_sessions` dict in `main.py` maps session_id → VoiceSession for REST queries; cleaned up on disconnect

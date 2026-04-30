@@ -81,6 +81,7 @@ class VoiceSession:
         self.config = config
         self.send_to_browser = send_to_browser
         self.session_id = str(uuid.uuid4())
+        self.conversation_id: Optional[str] = None
         self._connection = None
         self._credential = None
         self._connection_context = None
@@ -226,6 +227,14 @@ class VoiceSession:
             elif event_type == ServerEventType.RESPONSE_CREATED:
                 self._active_response = True
                 self._response_api_done = False
+                # Capture conversation_id from the first response
+                if not self.conversation_id:
+                    response_obj = getattr(event, "response", None)
+                    cid = getattr(response_obj, "conversation_id", None) if response_obj else None
+                    if cid:
+                        self.conversation_id = cid
+                        logger.info("Captured conversation_id: %s", cid)
+                        await self.send_to_browser({"type": "conversation_id", "id": cid})
                 await self.send_to_browser({"type": "response_created"})
                 await self.send_to_browser({"type": "status", "message": "processing"})
 
