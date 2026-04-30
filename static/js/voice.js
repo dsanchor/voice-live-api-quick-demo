@@ -182,6 +182,16 @@
         setThinking(false);
         break;
 
+      case 'audio_done':
+        // Server finished sending audio for this response
+        setMicState('idle');
+        break;
+
+      case 'agent_text':
+        if (msg.text) addMessage('agent', msg.text);
+        setThinking(false);
+        break;
+
       case 'error':
         showToast(msg.message || 'An error occurred.', 'error');
         break;

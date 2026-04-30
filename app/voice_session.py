@@ -263,6 +263,11 @@ class VoiceSession:
                             logger.debug("Cancel ignored - response already completed")
                         else:
                             logger.warning("Cancel failed: %s", e)
+                # Clear input buffer to discard residual audio from canceled response
+                try:
+                    await self._connection.input_audio_buffer.clear()
+                except Exception as e:
+                    logger.debug("input_audio_buffer.clear failed: %s", e)
 
             elif event_type == ServerEventType.INPUT_AUDIO_BUFFER_SPEECH_STOPPED:
                 await self.send_to_browser({"type": "status", "message": "processing"})

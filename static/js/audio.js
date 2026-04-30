@@ -149,7 +149,7 @@ const AudioUtils = (function () {
       this._context = null;
       this._queue = [];
       this._playing = false;
-      this._currentSource = null;
+      this._activeSources = new Set();
       this._nextTime = 0;
     }
 
@@ -174,7 +174,7 @@ const AudioUtils = (function () {
 
     _scheduleNext() {
       if (this._queue.length === 0) {
-        this._playing = false;
+        if (this._activeSources.size === 0) this._playing = false;
         return;
       }
       this._playing = true;
@@ -186,10 +186,10 @@ const AudioUtils = (function () {
       const startTime = Math.max(this._context.currentTime, this._nextTime);
       source.start(startTime);
       this._nextTime = startTime + buffer.duration;
-      this._currentSource = source;
+      this._activeSources.add(source);
 
       source.onended = () => {
-        if (this._currentSource === source) this._currentSource = null;
+        this._activeSources.delete(source);
         this._scheduleNext();
       };
     }
@@ -198,10 +198,10 @@ const AudioUtils = (function () {
     flush() {
       this._queue = [];
       this._nextTime = 0;
-      if (this._currentSource) {
-        try { this._currentSource.stop(); } catch { /* ok */ }
-        this._currentSource = null;
+      for (const source of this._activeSources) {
+        try { source.stop(); } catch { /* already stopped */ }
       }
+      this._activeSources.clear();
       this._playing = false;
     }
 
