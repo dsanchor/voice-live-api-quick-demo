@@ -11,137 +11,113 @@
 
   <main class="config-page" role="main">
     <h1>Voice Agent</h1>
+    <p class="subtitle">Configure your Voice Live connection parameters.</p>
 
-    <!-- ===== Menu View ===== -->
-    <div id="menuView">
-      <p class="subtitle">Start a new voice session or resume a previous conversation.</p>
+    <form id="configForm" novalidate>
+      <!-- Mandatory Parameters -->
+      <section>
+        <h2 class="section-title">Connection</h2>
 
-      <div class="menu-actions">
-        <button type="button" class="btn btn-primary btn-lg menu-btn" id="newConversationBtn">
-          ＋ New Conversation
-        </button>
-      </div>
+        <div class="form-group" data-required>
+          <label for="voiceLiveEndpoint">Voice Live Endpoint</label>
+          <input type="text" id="voiceLiveEndpoint" name="voiceLiveEndpoint"
+                 placeholder="https://your-endpoint.services.ai.azure.com/"
+                 autocomplete="url" aria-required="true">
+          <span class="error-msg">Endpoint is required</span>
+        </div>
 
-      <section class="saved-conversations" id="savedConversationsSection">
-        <h2 class="section-title">Resume Conversation</h2>
-        <div id="savedConversationsList" class="conversation-list">
-          <p class="text-muted">No saved conversations.</p>
+        <div class="form-group" data-required>
+          <label for="agentName">Agent Name</label>
+          <input type="text" id="agentName" name="agentName"
+                 placeholder="my-voice-agent" aria-required="true">
+          <span class="error-msg">Agent name is required</span>
+        </div>
+
+        <div class="form-group" data-required>
+          <label for="projectName">Project Name</label>
+          <input type="text" id="projectName" name="projectName"
+                 placeholder="my-project" aria-required="true">
+          <span class="error-msg">Project name is required</span>
         </div>
       </section>
-    </div>
 
-    <!-- ===== Settings Form View ===== -->
-    <div id="settingsView" class="hidden">
-      <p class="subtitle">Configure your Voice Live connection parameters.</p>
+      <!-- Optional Parameters -->
+      <section>
+        <button type="button" class="collapsible-header" id="advancedToggle"
+                aria-expanded="false" aria-controls="advancedSection">
+          <span class="chevron">▶</span> Advanced Settings
+        </button>
 
-      <button type="button" class="btn btn-secondary" id="backToMenuBtn">← Back to Menu</button>
-
-      <form id="configForm" novalidate>
-        <!-- Mandatory Parameters -->
-        <section>
-          <h2 class="section-title">Connection</h2>
-
-          <div class="form-group" data-required>
-            <label for="voiceLiveEndpoint">Voice Live Endpoint</label>
-            <input type="text" id="voiceLiveEndpoint" name="voiceLiveEndpoint"
-                   placeholder="https://your-endpoint.services.ai.azure.com/"
-                   autocomplete="url" aria-required="true">
-            <span class="error-msg">Endpoint is required</span>
+        <div class="collapsible-content" id="advancedSection" role="region">
+          <div class="form-group">
+            <label for="voiceName">Voice Name</label>
+            <input type="text" id="voiceName" name="voiceName"
+                   value="en-US-Ava:DragonHDLatestNeural">
           </div>
 
-          <div class="form-group" data-required>
-            <label for="agentName">Agent Name</label>
-            <input type="text" id="agentName" name="agentName"
-                   placeholder="my-voice-agent" aria-required="true">
-            <span class="error-msg">Agent name is required</span>
+          <div class="form-group">
+            <label for="agentVersion">Agent Version</label>
+            <input type="text" id="agentVersion" name="agentVersion"
+                   placeholder="Leave empty for latest">
           </div>
 
-          <div class="form-group" data-required>
-            <label for="projectName">Project Name</label>
-            <input type="text" id="projectName" name="projectName"
-                   placeholder="my-project" aria-required="true">
-            <span class="error-msg">Project name is required</span>
+          <div class="form-group">
+            <label for="conversationId">Conversation ID</label>
+            <input type="text" id="conversationId" name="conversationId"
+                   placeholder="Leave empty for new conversation">
           </div>
-        </section>
 
-        <!-- Optional Parameters -->
-        <section>
-          <button type="button" class="collapsible-header" id="advancedToggle"
-                  aria-expanded="false" aria-controls="advancedSection">
-            <span class="chevron">▶</span> Advanced Settings
-          </button>
-
-          <div class="collapsible-content" id="advancedSection" role="region">
-            <div class="form-group">
-              <label for="voiceName">Voice Name</label>
-              <input type="text" id="voiceName" name="voiceName"
-                     value="en-US-Ava:DragonHDLatestNeural">
-            </div>
-
-            <div class="form-group">
-              <label for="agentVersion">Agent Version</label>
-              <input type="text" id="agentVersion" name="agentVersion"
-                     placeholder="Leave empty for latest">
-            </div>
-
-            <div class="form-group">
-              <label for="conversationId">Conversation ID</label>
-              <input type="text" id="conversationId" name="conversationId"
-                     placeholder="Leave empty for new conversation">
-            </div>
-
-            <div class="form-group">
-              <label for="foundryResourceOverride">Foundry Resource Override</label>
-              <input type="text" id="foundryResourceOverride" name="foundryResourceOverride"
-                     placeholder="For cross-resource connections">
-            </div>
-
-            <div class="form-group">
-              <label for="authIdentityClientId">Authentication Identity Client ID</label>
-              <input type="text" id="authIdentityClientId" name="authIdentityClientId"
-                     placeholder="Managed identity client ID">
-            </div>
-
-            <div class="checkbox-group">
-              <input type="checkbox" id="enableInterimResponses" name="enableInterimResponses" checked>
-              <label for="enableInterimResponses">Enable Interim Responses</label>
-            </div>
-
-            <div class="form-group">
-              <label for="interimResponseInstructions">Interim Response Instructions</label>
-              <textarea id="interimResponseInstructions" name="interimResponseInstructions"
-                        rows="2">Create friendly interim responses indicating wait time due to ongoing processing, if any.</textarea>
-            </div>
-
-            <div class="form-group">
-              <label for="latencyThreshold">Latency Threshold (ms)</label>
-              <input type="number" id="latencyThreshold" name="latencyThreshold"
-                     value="100" min="0" step="10">
-            </div>
-
-            <div class="checkbox-group">
-              <input type="checkbox" id="enableProactiveGreeting" name="enableProactiveGreeting" checked>
-              <label for="enableProactiveGreeting">Enable Proactive Greeting</label>
-            </div>
-
-            <div class="form-group">
-              <label for="proactiveGreetingText">Proactive Greeting Text</label>
-              <textarea id="proactiveGreetingText" name="proactiveGreetingText"
-                        rows="2">Say something to welcome the user in English.</textarea>
-            </div>
+          <div class="form-group">
+            <label for="foundryResourceOverride">Foundry Resource Override</label>
+            <input type="text" id="foundryResourceOverride" name="foundryResourceOverride"
+                   placeholder="For cross-resource connections">
           </div>
-        </section>
 
-        <div class="actions">
-          <label for="loadSettingsFile" class="btn btn-secondary btn-lg" role="button" tabindex="0">
-            📂 Load Settings
-          </label>
-          <button type="submit" class="btn btn-primary btn-lg">
-            Start Voice Session →
-          </button>
+          <div class="form-group">
+            <label for="authIdentityClientId">Authentication Identity Client ID</label>
+            <input type="text" id="authIdentityClientId" name="authIdentityClientId"
+                   placeholder="Managed identity client ID">
+          </div>
+
+          <div class="checkbox-group">
+            <input type="checkbox" id="enableInterimResponses" name="enableInterimResponses" checked>
+            <label for="enableInterimResponses">Enable Interim Responses</label>
+          </div>
+
+          <div class="form-group">
+            <label for="interimResponseInstructions">Interim Response Instructions</label>
+            <textarea id="interimResponseInstructions" name="interimResponseInstructions"
+                      rows="2">Create friendly interim responses indicating wait time due to ongoing processing, if any.</textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="latencyThreshold">Latency Threshold (ms)</label>
+            <input type="number" id="latencyThreshold" name="latencyThreshold"
+                   value="100" min="0" step="10">
+          </div>
+
+          <div class="checkbox-group">
+            <input type="checkbox" id="enableProactiveGreeting" name="enableProactiveGreeting" checked>
+            <label for="enableProactiveGreeting">Enable Proactive Greeting</label>
+          </div>
+
+          <div class="form-group">
+            <label for="proactiveGreetingText">Proactive Greeting Text</label>
+            <textarea id="proactiveGreetingText" name="proactiveGreetingText"
+                      rows="2">Say something to welcome the user in English.</textarea>
+          </div>
         </div>
-      </form>
-    </div>
+      </section>
+
+      <div class="actions">
+        <label for="loadSettingsFile" class="btn btn-secondary btn-lg" role="button" tabindex="0">
+          📂 Load Settings
+        </label>
+        <button type="submit" class="btn btn-primary btn-lg">
+          Start Voice Session →
+        </button>
+      </div>
+    </form>
   </main>
 
   <!-- Outside the form so label-click reliably opens the file dialog -->

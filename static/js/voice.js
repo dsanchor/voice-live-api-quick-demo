@@ -5,7 +5,6 @@
   'use strict';
 
   const STORAGE_KEY = 'voiceAgentConfig';
-  const CONVERSATIONS_KEY = 'voiceAgentConversations';
 
   // ---- Load config or redirect ----
   let config;
@@ -87,56 +86,6 @@
     return div.innerHTML;
   }
 
-  // ---- Conversation persistence ----
-
-  function saveConversationToStorage(conversationId) {
-    const conversations = getSavedConversations();
-
-    // Don't duplicate
-    if (conversations.some(c => c.conversationId === conversationId)) return;
-
-    const entry = {
-      conversationId,
-      settings: { ...config },
-      agentName: config.agentName,
-      date: new Date().toISOString(),
-      label: config.agentName + ' — ' + config.projectName,
-    };
-    // Remove conversationId from settings copy (it's stored at top level)
-    delete entry.settings.conversationId;
-
-    conversations.push(entry);
-    localStorage.setItem(CONVERSATIONS_KEY, JSON.stringify(conversations));
-  }
-
-  function getSavedConversations() {
-    try {
-      return JSON.parse(localStorage.getItem(CONVERSATIONS_KEY)) || [];
-    } catch { return []; }
-  }
-
-  // ---- "Back to Menu" button ----
-
-  function showBackToMenu() {
-    // Only add if not already present
-    if (document.getElementById('backToMenuBtn')) return;
-
-    const btn = document.createElement('button');
-    btn.id = 'backToMenuBtn';
-    btn.className = 'btn btn-secondary btn-lg';
-    btn.textContent = '← Back to Menu';
-    btn.style.marginTop = '1rem';
-    btn.addEventListener('click', () => {
-      window.location.href = 'index.html';
-    });
-
-    // Insert below the mic area
-    const micArea = document.querySelector('.mic-area');
-    if (micArea) {
-      micArea.appendChild(btn);
-    }
-  }
-
   // ---- WebSocket ----
 
   function connect() {
@@ -186,7 +135,6 @@
       sessionReady = false;
       if (micActive) stopMic();
       micLabel.textContent = e.wasClean ? 'Session ended' : 'Disconnected';
-      showBackToMenu();
     };
   }
 
@@ -200,14 +148,6 @@
           sessionInfo.textContent = `Session: ${msg.session_id}`;
         }
         showToast('Session ready — click the mic to start.', 'success');
-        break;
-
-      case 'conversation_id':
-        if (msg.id) {
-          saveConversationToStorage(msg.id);
-          sessionInfo.textContent = `Conversation: ${msg.id.substring(0, 8)}…`;
-          showToast('Conversation tracked.', 'info');
-        }
         break;
 
       case 'audio':
@@ -312,7 +252,6 @@
     micButton.disabled = true;
     micLabel.textContent = 'Session ended';
     sessionReady = false;
-    showBackToMenu();
   }
 
   endSessionBtn.addEventListener('click', endSession);
