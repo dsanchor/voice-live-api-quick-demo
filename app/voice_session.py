@@ -46,7 +46,7 @@ class VoiceSessionConfig:
     proactive_greeting: Optional[str] = None
     greeting_enabled: bool = True
     noise_reduction_enabled: bool = False
-    echo_cancellation_enabled: bool = False
+    echo_cancellation_enabled: bool = True
 
     @classmethod
     def from_dict(cls, data: dict) -> "VoiceSessionConfig":
@@ -88,6 +88,8 @@ class VoiceSession:
         self._stopped = False
         self._active_response = False
         self._response_api_done = False
+        self._audio_chunks_sent = 0
+        self._first_event_received = False
 
     async def start(self):
         """Connect to Voice Live API and start receiving events."""
@@ -182,6 +184,13 @@ class VoiceSession:
         if self._stopped or not self._connection:
             return
         try:
+            self._audio_chunks_sent += 1
+            if self._audio_chunks_sent % 50 == 0:
+                logger.debug(
+                    "Audio flowing: %d chunks sent to Voice Live (session %s)",
+                    self._audio_chunks_sent,
+                    self.session_id,
+                )
             await self._connection.input_audio_buffer.append(audio=audio_base64)
         except Exception as e:
             logger.error("Error sending audio to Voice Live: %s", e)
@@ -193,6 +202,18 @@ class VoiceSession:
             async for event in self._connection:
                 if self._stopped:
                     break
+                if not self._first_event_received:
+                    self._first_event_received = True
+                    logger.info(
+                        "First event received from Voice Live (session %s): type=%s",
+                        self.session_id,
+                        getattr(event, "type", "unknown"),
+                    )
+                logger.debug(
+                    "Voice Live event received: %s (session %s)",
+                    getattr(event, "type", "unknown"),
+                    self.session_id,
+                )
                 await self._handle_event(event)
         except asyncio.CancelledError:
             logger.info("Receive loop cancelled for session %s", self.session_id)
@@ -205,6 +226,7 @@ class VoiceSession:
         """Handle a single Voice Live event."""
         try:
             event_type = event.type
+            logger.debug("Handling event type: %s (session %s)", event_type, self.session_id)
 
             if event_type == ServerEventType.RESPONSE_AUDIO_DELTA:
                 audio_data = event.delta if hasattr(event, "delta") else None
@@ -253,9 +275,11 @@ class VoiceSession:
                 })
 
             elif event_type == ServerEventType.INPUT_AUDIO_BUFFER_SPEECH_STARTED:
+                logger.info("Speech started detected (session %s, active_response=%s)", self.session_id, self._active_response)
                 await self.send_to_browser({"type": "status", "message": "listening"})
-                # Barge-in: cancel current response only if one is active
+                # Barge-in: cancel current response and clear buffer only if one is active
                 if self._active_response and not self._response_api_done:
+                    logger.info("Barge-in triggered — canceling active response (session %s)", self.session_id)
                     try:
                         await self._connection.response.cancel()
                     except Exception as e:
@@ -263,11 +287,11 @@ class VoiceSession:
                             logger.debug("Cancel ignored - response already completed")
                         else:
                             logger.warning("Cancel failed: %s", e)
-                # Clear input buffer to discard residual audio from canceled response
-                try:
-                    await self._connection.input_audio_buffer.clear()
-                except Exception as e:
-                    logger.debug("input_audio_buffer.clear failed: %s", e)
+                    # Clear input buffer to discard residual audio from canceled response
+                    try:
+                        await self._connection.input_audio_buffer.clear()
+                    except Exception as e:
+                        logger.debug("input_audio_buffer.clear failed: %s", e)
 
             elif event_type == ServerEventType.INPUT_AUDIO_BUFFER_SPEECH_STOPPED:
                 await self.send_to_browser({"type": "status", "message": "processing"})
