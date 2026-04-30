@@ -9,3 +9,4 @@ config-samples/demo-quick.json
 .squad/.scratch/
 # Squad: SubSquad activation file (local to this machine)
 .squad-workstream
+__pycache__/
