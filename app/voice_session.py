@@ -40,9 +40,9 @@ class VoiceSessionConfig:
     conversation_id: Optional[str] = None
     foundry_resource_override: Optional[str] = None
     agent_authentication_identity_client_id: Optional[str] = None
-    interim_response_enabled: bool = True
+    interim_response_enabled: bool = False
     interim_response_instructions: str = "Provide a brief acknowledgment while processing."
-    latency_threshold_ms: int = 100
+    latency_threshold_ms: int = 2000
     proactive_greeting: Optional[str] = None
     greeting_enabled: bool = True
     noise_reduction_enabled: bool = False
