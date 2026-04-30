@@ -182,6 +182,11 @@
         setThinking(false);
         break;
 
+      case 'audio_stop':
+        // Barge-in: immediately stop all agent audio playback
+        if (audioPlayer) audioPlayer.flush();
+        break;
+
       case 'audio_done':
         // Server finished sending audio for this response
         setMicState('idle');

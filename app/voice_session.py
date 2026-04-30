@@ -3,7 +3,6 @@
 import asyncio
 import base64
 import logging
-import time
 import uuid
 from dataclasses import dataclass, field
 from typing import Optional
@@ -89,7 +88,6 @@ class VoiceSession:
         self._stopped = False
         self._active_response = False
         self._response_api_done = False
-        self._response_audio_start_time: Optional[float] = None
         self._audio_chunks_sent = 0
         self._first_event_received = False
 
@@ -250,14 +248,12 @@ class VoiceSession:
             elif event_type == ServerEventType.RESPONSE_CREATED:
                 self._active_response = True
                 self._response_api_done = False
-                self._response_audio_start_time = time.time()
                 await self.send_to_browser({"type": "response_created"})
                 await self.send_to_browser({"type": "status", "message": "processing"})
 
             elif event_type == ServerEventType.RESPONSE_DONE:
                 self._active_response = False
                 self._response_api_done = True
-                self._response_audio_start_time = None
                 await self.send_to_browser({"type": "response_done"})
                 await self.send_to_browser({"type": "status", "message": "listening"})
 
@@ -280,32 +276,20 @@ class VoiceSession:
 
             elif event_type == ServerEventType.INPUT_AUDIO_BUFFER_SPEECH_STARTED:
                 logger.info("Speech started detected (session %s, active_response=%s)", self.session_id, self._active_response)
+                # Stop browser audio playback immediately (equivalent of skip_pending_audio)
+                await self.send_to_browser({"type": "audio_stop"})
                 await self.send_to_browser({"type": "status", "message": "listening"})
-                # Barge-in: cancel current response and clear buffer only if one is active
-                if self._active_response and not self._response_api_done:
-                    # Cooldown: suppress barge-in if response just started (likely echo)
-                    cooldown_seconds = 2.0
-                    if self._response_audio_start_time and (time.time() - self._response_audio_start_time) < cooldown_seconds:
-                        logger.info(
-                            "Barge-in suppressed (cooldown, %.1fs since response start) (session %s)",
-                            time.time() - self._response_audio_start_time,
-                            self.session_id,
-                        )
-                        return
+                # Cancel active response if one is in progress
                 if self._active_response and not self._response_api_done:
                     logger.info("Barge-in triggered — canceling active response (session %s)", self.session_id)
                     try:
                         await self._connection.response.cancel()
+                        logger.debug("Cancelled in-progress response due to barge-in")
                     except Exception as e:
                         if "no active response" in str(e).lower():
                             logger.debug("Cancel ignored - response already completed")
                         else:
                             logger.warning("Cancel failed: %s", e)
-                    # Clear input buffer to discard residual audio from canceled response
-                    try:
-                        await self._connection.input_audio_buffer.clear()
-                    except Exception as e:
-                        logger.debug("input_audio_buffer.clear failed: %s", e)
 
             elif event_type == ServerEventType.INPUT_AUDIO_BUFFER_SPEECH_STOPPED:
                 await self.send_to_browser({"type": "status", "message": "processing"})
