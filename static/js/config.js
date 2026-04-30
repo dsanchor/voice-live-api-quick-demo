@@ -120,6 +120,65 @@
     setTimeout(() => toast.remove(), 4000);
   }
 
+  // ---- Load settings from JSON file ----
+  const loadSettingsBtn = document.getElementById('loadSettingsBtn');
+  const loadSettingsFile = document.getElementById('loadSettingsFile');
+
+  loadSettingsBtn.addEventListener('click', () => loadSettingsFile.click());
+
+  loadSettingsFile.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      let data;
+      try {
+        data = JSON.parse(evt.target.result);
+      } catch {
+        showToast('Invalid JSON file.', 'error');
+        loadSettingsFile.value = '';
+        return;
+      }
+
+      // Validate mandatory fields
+      const missing = REQUIRED.filter(k => !data[k] || String(data[k]).trim() === '');
+      if (missing.length) {
+        showToast(`Missing mandatory fields: ${missing.join(', ')}`, 'error');
+        loadSettingsFile.value = '';
+        return;
+      }
+
+      // Populate form fields
+      for (const [id, meta] of Object.entries(FIELDS)) {
+        const el = document.getElementById(id);
+        if (!el || !(id in data)) continue;
+
+        if (meta.type === 'checkbox') {
+          el.checked = Boolean(data[id]);
+        } else {
+          el.value = data[id] ?? '';
+        }
+
+        // Clear any validation errors
+        const group = el.closest('.form-group');
+        if (group) group.classList.remove('error');
+      }
+
+      // Expand advanced section if any advanced fields are present
+      const advancedKeys = Object.keys(FIELDS).filter(k => !REQUIRED.includes(k));
+      if (advancedKeys.some(k => k in data)) {
+        advancedSection.classList.add('open');
+        advancedToggle.classList.add('open');
+        advancedToggle.setAttribute('aria-expanded', 'true');
+      }
+
+      showToast('Settings loaded successfully!', 'success');
+      loadSettingsFile.value = '';
+    };
+    reader.readAsText(file);
+  });
+
   // ---- Init ----
   loadConfig();
 })();

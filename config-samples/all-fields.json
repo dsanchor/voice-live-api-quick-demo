@@ -1,0 +1,15 @@
+{
+  "voiceLiveEndpoint": "https://my-ai-foundry.services.ai.azure.com/",
+  "agentName": "customer-support-agent",
+  "projectName": "contoso-voice-project",
+  "voiceName": "en-US-Ava:DragonHDLatestNeural",
+  "agentVersion": "1.0.3",
+  "conversationId": "conv-abc123-def456",
+  "foundryResourceOverride": "https://secondary-foundry.services.ai.azure.com/",
+  "authIdentityClientId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "enableInterimResponses": true,
+  "interimResponseInstructions": "Create friendly interim responses indicating wait time due to ongoing processing, if any.",
+  "latencyThreshold": 100,
+  "enableProactiveGreeting": true,
+  "proactiveGreetingText": "Say something to welcome the user in English."
+}

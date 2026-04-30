@@ -1,0 +1,5 @@
+{
+  "voiceLiveEndpoint": "https://my-ai-foundry.services.ai.azure.com/",
+  "agentName": "customer-support-agent",
+  "projectName": "contoso-voice-project"
+}

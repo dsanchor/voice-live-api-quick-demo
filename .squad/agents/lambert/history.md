@@ -27,3 +27,13 @@
 - **Integration bugs fixed by Coordinator:** camelCase→snake_case config mapping, status field name mismatch, AzureStandardVoice type, agent_version default
 - **Orchestration log** written at `.squad/orchestration-log/2026-04-28T16:19:15Z-lambert.md`
 - **Status:** Ready for Azure Container Apps deployment
+
+### 2026-04-30T15:08:53.243+02:00 — Load Settings from JSON File
+- **Feature:** Added "Load Settings" button to config page that opens browser file picker for `.json` files
+- **Pattern:** Hidden `<input type="file">` triggered by visible button click — keeps UI clean while using native file dialog
+- **Validation:** JSON parse check + mandatory field presence check before populating form. Error/success toasts for feedback.
+- **Auto-expand:** If the loaded JSON contains any advanced fields, the collapsible Advanced Settings section opens automatically
+- **Sample configs:** Created `config-samples/mandatory-only.json` and `config-samples/all-fields.json` with realistic placeholders
+- **Styling:** Used existing `.btn-secondary` class; added `.config-toolbar` flex container above the form
+- **Key files modified:** `static/index.html`, `static/js/config.js`, `static/css/style.css`
+- **New files:** `config-samples/mandatory-only.json`, `config-samples/all-fields.json`

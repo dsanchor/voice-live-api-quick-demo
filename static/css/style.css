@@ -326,6 +326,12 @@ textarea {
   border-bottom: 1px solid var(--border);
 }
 
+.config-toolbar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
 .config-page .actions {
   margin-top: 1.5rem;
   display: flex;
