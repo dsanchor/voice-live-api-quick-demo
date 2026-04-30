@@ -121,10 +121,7 @@
   }
 
   // ---- Load settings from JSON file ----
-  const loadSettingsBtn = document.getElementById('loadSettingsBtn');
   const loadSettingsFile = document.getElementById('loadSettingsFile');
-
-  loadSettingsBtn.addEventListener('click', () => loadSettingsFile.click());
 
   loadSettingsFile.addEventListener('change', (e) => {
     const file = e.target.files[0];

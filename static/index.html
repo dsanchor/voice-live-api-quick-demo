@@ -110,16 +110,19 @@
       </section>
 
       <div class="actions">
-        <input type="file" id="loadSettingsFile" accept=".json" style="display:none">
-        <button type="button" class="btn btn-secondary btn-lg" id="loadSettingsBtn">
+        <label for="loadSettingsFile" class="btn btn-secondary btn-lg" role="button" tabindex="0">
           📂 Load Settings
-        </button>
+        </label>
         <button type="submit" class="btn btn-primary btn-lg">
           Start Voice Session →
         </button>
       </div>
     </form>
   </main>
+
+  <!-- Outside the form so label-click reliably opens the file dialog -->
+  <input type="file" id="loadSettingsFile" accept=".json"
+         style="position:absolute;width:0;height:0;overflow:hidden;opacity:0" tabindex="-1">
 
   <script src="js/config.js"></script>
 </body>

@@ -332,7 +332,13 @@ textarea {
   margin-top: 1.5rem;
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 1.25rem;
+}
+
+.config-page .actions label[for="loadSettingsFile"] {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
 }
 
 /* ---- Voice Page ---- */
