@@ -37,3 +37,10 @@
 - **Styling:** Used existing `.btn-secondary` class; added `.config-toolbar` flex container above the form
 - **Key files modified:** `static/index.html`, `static/js/config.js`, `static/css/style.css`
 - **New files:** `config-samples/mandatory-only.json`, `config-samples/all-fields.json`
+
+### 2026-05-02T08:26:49Z — Config Loader Field Reset Fix
+- **Issue:** JSON file loading was not resetting fields to defaults when they weren't present in the loaded JSON (due to `!(id in data)` guard preventing assignment)
+- **Fix:** Removed the guard; fields now properly reset to application defaults when omitted from JSON
+- **Impact:** Users can load partial config JSON files without stale values from previous sessions remaining
+- **Testing:** Verified form field reset behavior on partial JSON loads
+- **Status:** Completed and committed

@@ -124,6 +124,70 @@
 
 ---
 
+### 2026-05-01T00:34:55+02:00: User directive
+**By:** dsanchor (via Copilot)
+**What:** Interim responses must NEVER generate audio simultaneously with the agent's main response. If the agent is already speaking, no interim audio should be produced.
+**Why:** User request — two overlapping audio streams cause the agent to appear to cut off. Interim is currently disabled by default; if re-enabled in the future, mutual exclusion between interim and main response audio must be enforced.
+
+---
+
+### Decision: Mobile UX Improvement Strategy
+**Date:** 2026-05-01T16:40:52.351+02:00  
+**Author:** Ripley (Lead)  
+**Status:** Recommendation (awaiting team decision)
+
+#### Executive Summary
+The current frontend is **vanilla HTML/JS with responsive CSS** — a lightweight, maintainable architecture with working audio/WebSocket integration. Mobile experience can be significantly improved without full framework migration. Recommend **phased approach**: CSS/HTML optimizations first (low risk, immediate gains), then optional progressive enhancements.
+
+#### Recommendation
+**Phase 1: CSS/HTML Enhancements (IMMEDIATE)**
+- Implement mobile-first CSS rewrite
+- Add aggressive hit target sizing (44-48px buttons, form inputs)
+- Improve spacing hierarchy for mobile
+- Estimated impact: +30-40% mobile UX
+- Timeline: 1-2 hours
+- Risk: Negligible
+- **Action:** Delegate to Lambert (Frontend Dev)
+
+**Phase 2: Progressive Enhancement (IF NEEDED)**
+- After Phase 1 deployment, gather user feedback
+- If mobile experience still needs work, add touch gestures and state improvements
+- **Action:** Delegate to Lambert (Frontend Dev)
+
+**🚫 Do NOT pursue framework migration** — Violates user's "minimize disruption" constraint
+
+#### Impact
+- **Frontend team:** Phase 1 styling work on `static/css/style.css`
+- **Backend:** No changes needed
+- **DevOps:** No changes needed
+
+---
+
+### Decision: Voice Live SDK Validation Findings
+**Date:** 2026-04-30T22:26:40.472+02:00  
+**Author:** Ripley (Lead)  
+**Status:** Review Required
+
+#### Must Address (for Dallas)
+1. **Connection lifecycle** — Refactor to use `async with` or proper try/finally wrapper
+2. **Missing event types** — Handle `RESPONSE_AUDIO_DONE` to signal browser that audio playback for a turn is complete
+3. **Barge-in robustness** — Add `_active_response` state tracking instead of bare `except Exception: pass`
+4. **Type the agent config** — Import and use `AgentSessionConfig` typed dict
+
+#### Should Address (nice-to-have)
+5. **Expose noise reduction / echo cancellation / VAD** — Expose as optional config fields
+
+#### No Action Needed
+6. **Credential** — `DefaultAzureCredential` is optimal; keep as-is
+7. **Greeting** — Our configurable greeting text is more flexible; keep as-is
+
+#### Impact
+- **Dallas:** Items 1-4 are backend work in `app/voice_session.py`
+- **Lambert:** Item 2 may introduce new WebSocket message types (`audio_done`)
+- **Kane:** Needs integration tests for barge-in and greeting flows once fixes land
+
+---
+
 ## Governance
 
 - All meaningful changes require team consensus
