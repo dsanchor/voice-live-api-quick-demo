@@ -14,7 +14,7 @@ A web application that connects users to an AI voice agent powered by Azure AI F
 
 - **Frontend** — Static HTML/JS served by FastAPI. Configuration page lets users set agent parameters.
 - **Backend** — FastAPI app proxies WebSocket connections to Azure AI Foundry.
-- **Identity** — System-assigned managed identity with `Azure AI User` role for Foundry access.
+- **Identity** — System-assigned managed identity with `Azure AI User` role scoped to the AI Foundry resource (least-privilege).
 - **CI/CD** — GitHub Actions builds and pushes container images to GitHub Packages (GHCR).
 
 ## Local Development
@@ -60,8 +60,10 @@ chmod +x infra/deploy.sh
   --resource-group  my-rg \
   --name            voice-agent \
   --image           ghcr.io/<owner>/<repo>:latest \
-  --foundry-resource-id "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<name>"
+  --foundry-resource-id "/subscriptions/<sub>/resourceGroups/<rg>/providers/Microsoft.CognitiveServices/accounts/<foundry-name>"
 ```
+
+> **Scope note:** The `--foundry-resource-id` must be the full resource ID of the **individual AI Foundry resource** (the `Microsoft.CognitiveServices/accounts` resource behind your `<name>.services.ai.azure.com` endpoint). Do **not** pass a resource group or subscription ID — the role assignment is scoped at the resource level for least-privilege access.
 
 Optional flags: `--location` (default `eastus2`), `--env-name`.
 
@@ -74,7 +76,7 @@ Run `./infra/deploy.sh --help` for full usage.
 | Resource Group | Created if not exists |
 | Container Apps Environment | Managed environment for the app |
 | Container App | 0.5 CPU, 1 Gi RAM, 0–3 replicas, port 8000, external ingress |
-| Managed Identity | System-assigned, with `Azure AI User` on the Foundry resource |
+| Managed Identity | System-assigned, with `Azure AI User` scoped to the individual Foundry resource (not resource group) |
 
 ## Environment Variables
 

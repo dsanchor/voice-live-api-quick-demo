@@ -26,7 +26,7 @@ Required:
   --resource-group        Azure resource group name
   --name                  Container App name
   --image                 Container image (e.g. ghcr.io/owner/repo:latest)
-  --foundry-resource-id   Azure AI Foundry resource ID for role assignment
+  --foundry-resource-id   Azure AI Foundry resource ID (full resource path, not RG or sub)
 
 Optional:
   --location              Azure region (default: eastus2)
@@ -126,9 +126,12 @@ PRINCIPAL_ID=$(az containerapp show \
 echo "   Principal ID: ${PRINCIPAL_ID}"
 
 # ---------------------------------------------------------------------------
-# Step 5 — Assign Azure AI User role on the Foundry resource
+# Step 5 — Assign Azure AI User role scoped to the AI Foundry resource
+# NOTE: The scope is the individual Foundry resource (Microsoft.CognitiveServices/accounts),
+#       NOT the resource group or subscription. This follows least-privilege: the managed
+#       identity can only access this specific Foundry instance.
 # ---------------------------------------------------------------------------
-echo ">> Assigning 'Azure AI User' role to managed identity on Foundry resource..."
+echo ">> Assigning 'Azure AI User' role to managed identity (scoped to Foundry resource)..."
 az role assignment create \
   --assignee "$PRINCIPAL_ID" \
   --role "Azure AI User" \
@@ -150,5 +153,6 @@ echo "App URL:       https://${APP_FQDN}"
 echo "Principal ID:  ${PRINCIPAL_ID}"
 echo "Image:         ${IMAGE}"
 echo ""
-echo "The managed identity has 'Azure AI User' on:"
+echo "The managed identity has 'Azure AI User' scoped to:"
 echo "  ${FOUNDRY_RESOURCE_ID}"
+echo "(Scope: individual Foundry resource, not resource group or subscription)"
