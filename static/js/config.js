@@ -146,15 +146,23 @@
         return;
       }
 
-      // Populate form fields
+      // Populate form fields — reset missing fields to defaults
       for (const [id, meta] of Object.entries(FIELDS)) {
         const el = document.getElementById(id);
-        if (!el || !(id in data)) continue;
+        if (!el) continue;
 
-        if (meta.type === 'checkbox') {
-          el.checked = Boolean(data[id]);
+        if (id in data) {
+          if (meta.type === 'checkbox') {
+            el.checked = Boolean(data[id]);
+          } else {
+            el.value = data[id] ?? '';
+          }
         } else {
-          el.value = data[id] ?? '';
+          if (meta.type === 'checkbox') {
+            el.checked = false;
+          } else {
+            el.value = '';
+          }
         }
 
         // Clear any validation errors
