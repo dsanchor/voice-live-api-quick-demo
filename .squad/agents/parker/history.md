@@ -21,3 +21,10 @@
 - **Integration bugs fixed by Coordinator:** camelCase→snake_case config mapping, status field name mismatch, AzureStandardVoice type, agent_version default
 - **Orchestration log** written at `.squad/orchestration-log/2026-04-28T16:19:15Z-parker.md`
 - **Status:** Ready for Azure Container Apps deployment
+
+### 2026-05-02 — Role assignment scope clarification
+- **Task:** User requested Azure AI User role assignment be scoped at the AI Foundry resource level, not resource group or subscription.
+- **Finding:** The `infra/deploy.sh` already used `--scope "$FOUNDRY_RESOURCE_ID"` (resource-level). The implementation was correct but documentation was ambiguous.
+- **Changes:** Updated `deploy.sh` comments/usage/output and `README.md` to explicitly call out resource-level scope with least-privilege rationale.
+- **Key pattern:** AI Foundry endpoints (`<name>.services.ai.azure.com`) map to `Microsoft.CognitiveServices/accounts/<name>` ARM resources.
+- **Preference:** User values least-privilege scoping — always scope roles to the narrowest resource, never resource group or subscription.

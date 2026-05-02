@@ -1,5 +1,5 @@
-# Config samples with personal settings
-config-samples/demo-quick.json
+# Config samples with personal settings (keep locally, never commit)
+config-samples/
 
 # Squad: ignore runtime state (logs, inbox, sessions)
 .squad/orchestration-log/
